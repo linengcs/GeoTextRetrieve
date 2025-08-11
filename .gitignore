@@ -1,0 +1,6 @@
+output/
+new_output/
+.ipynb_checkpoints/
+
+loss.csv
+test.py
