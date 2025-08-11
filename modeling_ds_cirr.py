@@ -319,21 +319,19 @@ class BGE_EVAToken(nn.Module):
                 query_reps = self._dist_gather_tensor(query_reps)
                 candi_reps = self._dist_gather_tensor(candi_reps)
             
-            scores = self.compute_similarity(query_reps, candi_reps)
-            scores = scores / self.temperature
-            scores = scores.view(query_reps.size(0), -1)
-            
-            target = torch.arange(scores.size(0), device=scores.device, dtype=torch.long)
-            target = target * (candi_reps.size(0) // query_reps.size(0))
-            
-            loss = self.compute_loss(scores, target)
+        scores = self.compute_similarity(query_reps, candi_reps)
+        scores = scores / self.temperature
+        scores = scores.view(query_reps.size(0), -1)
+        
+        target = torch.arange(scores.size(0), device=scores.device, dtype=torch.long)
+        target = target * (candi_reps.size(0) // query_reps.size(0))
+        
+        loss = self.compute_loss(scores, target)
 
+        if self.training:
             self.tf_writer.add_scalar("loss", loss)
-            
             logging.info("loss: %s" %(str(loss)))
-        else:
-            scores = self.compute_similarity(query_reps, candi_reps)
-            loss=None
+
         return EncoderOutput(
             loss=loss,
             scores=scores,

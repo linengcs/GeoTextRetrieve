@@ -16,6 +16,7 @@ from transformers import (
     TrainerState,
     TrainerControl
 )
+import datasets
 import sys
 print(os.getcwd())
 sys.path.append('./FlagEmbedding/baai_general_embedding/downstream')
@@ -71,7 +72,12 @@ def main():
     # Set seed
     set_seed(training_args.seed)
 
-
+    # Load and split datasets
+    full_dataset = datasets.load_dataset('json', data_files=data_args.train_data, split='train')
+    split_datasets = full_dataset.train_test_split(test_size=0.1, seed=training_args.seed)
+    train_split = split_datasets['train']
+    val_split = split_datasets['test']
+    logger.info(f"Data split: {len(train_split)} for training, {len(val_split)} for validation.")
 
     num_labels = 1
     tokenizer = AutoTokenizer.from_pretrained(
@@ -142,12 +148,17 @@ def main():
 
     train_dataset = Multimodal_Dataset(args=data_args, 
                                        image_processor=model.preprocess_train,
-                                      )
+                                       dataset=train_split)
+
+    val_dataset = Multimodal_Dataset(args=data_args, 
+                                     image_processor=model.preprocess_val,
+                                     dataset=val_split)
 
     trainer = BiTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
+        eval_dataset=val_dataset,
         data_collator=Multimodal_Collator(
             tokenizer,
         ),

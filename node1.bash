@@ -11,7 +11,7 @@ SAVE_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xi
 IMAGE_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/track4/track4-cross-modal-drone-navigation/images # the training image directory
 EPOCH=50
 RESUME_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/VISTA_Evaluation_FineTuning/downstream_finetune_example/output/checkpoint-9400/BGE_EVA_Token.pth # pre-trained visualized bge weights
-SAVE_STEPS=1000
+SAVE_STEPS=100
 GROUP_SIZE=5 # = one (positive sample) + number (of hard negative samples)
 BSZ_PERGPU=55
 LR=2e-5
@@ -49,6 +49,12 @@ full_options="
   --train_text_tower True  \
   --train_vision_tower True \
   --save_steps $SAVE_STEPS \
+  --evaluation_strategy "steps" \
+  --eval_steps $SAVE_STEPS \
+  --load_best_model_at_end True \
+  --metric_for_best_model "eval_loss" \
+  --greater_is_better "False" \
+  --save_total_limit 2 \
   --deepspeed $DeepSpeedConfig \
   --gradient_checkpointing \
   "

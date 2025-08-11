@@ -13,16 +13,19 @@ import torch
 import torch.distributed
 
 class Multimodal_Dataset(Dataset):
-    def __init__(self, args:DataArguments, image_processor=None) -> None:
+    def __init__(self, args:DataArguments, image_processor=None, dataaset=None) -> None:
         self.image_dir = args.train_data_image
         self.train_group_size = args.train_group_size
         
-        jsonl_dir = args.train_data 
-        cirr_data_path = jsonl_dir
+        if dataaset is None:
+            jsonl_dir = args.train_data 
+            cirr_data_path = jsonl_dir
+            self.cirr_dataset = datasets.load_dataset('json', data_files=cirr_data_path, split='train')    
+        else:
+            self.cirr_dataset = dataaset
+        
         self.hn_mining = False # True if use "cirr/query_train_hn_mining.jsonl"
-        
-        self.cirr_dataset = datasets.load_dataset('json', data_files=cirr_data_path, split='train')    
-        
+
         self.total_len = len(self.cirr_dataset)
           
         self.image_processor = image_processor
