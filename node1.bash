@@ -6,12 +6,12 @@ NNODES=1
 NODE_RANK=0
 WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
 
-DATA_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/track4/data/train_output.jsonl # the directory of query_train.jsonl
-SAVE_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/VISTA_Evaluation_FineTuning/downstream_finetune_example/new_output # your saving path 
+DATA_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/track4/data/merged.jsonl # the directory of query_train.jsonl
+SAVE_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/VISTA_Evaluation_FineTuning/downstream_finetune_example/train+test # your saving path 
 IMAGE_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/track4/track4-cross-modal-drone-navigation/images # the training image directory
 EPOCH=50
-RESUME_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/VISTA_Evaluation_FineTuning/downstream_finetune_example/output/checkpoint-9400/BGE_EVA_Token.pth # pre-trained visualized bge weights
-SAVE_STEPS=100
+RESUME_PATH=/inspire/hdd/ws-f4d69b29-e0a5-44e6-bd92-acf4de9990f0/public-project/xieyuan-24039/llf/VISTA_Evaluation_FineTuning/downstream_finetune_example/train+test/checkpoint-23000 # pre-trained visualized bge weights
+SAVE_STEPS=2000
 GROUP_SIZE=5 # = one (positive sample) + number (of hard negative samples)
 BSZ_PERGPU=55
 LR=2e-5
@@ -36,25 +36,26 @@ full_options="
   --dataloader_num_workers 1  \
   --train_data $DATA_PATH \
   --train_data_image $IMAGE_PATH \
-  --train_group_size $GROUP_SIZE
+  --train_group_size $GROUP_SIZE \
   --learning_rate $LR \
   --bf16 \
   --per_device_train_batch_size $BSZ_PERGPU \
+  --per_device_eval_batch_size $BSZ_PERGPU \
   --dataloader_drop_last True \
   --normlized True \
   --temperature 0.02 \
-  --logging_steps 10 \
+  --logging_steps 100 \
   --num_train_epochs $EPOCH \
   --negatives_cross_device \
   --train_text_tower True  \
   --train_vision_tower True \
   --save_steps $SAVE_STEPS \
-  --evaluation_strategy "steps" \
+  --do_eval True \
+  --eval_strategy "steps" \
   --eval_steps $SAVE_STEPS \
   --load_best_model_at_end True \
   --metric_for_best_model "eval_loss" \
   --greater_is_better "False" \
-  --save_total_limit 2 \
   --deepspeed $DeepSpeedConfig \
   --gradient_checkpointing \
   "

@@ -109,6 +109,25 @@ class RetrieverTrainingArguments(TrainingArguments):
     save_steps: int = field(
         default=1000, metadata={"help": "Save checkpoint per how many steps"}
     )
+    
+    # evaluation_strategy: str = field(
+    #     default=None, metadata={"help": "The evaluation strategy to use."}
+    # )
+    eval_steps: int = field(
+        default=None, metadata={"help": "when evaluate"}
+    )
+    
+    metric_for_best_model: str = field(
+        default="train_loss", metadata={"help": ""}
+    )
+    
+    greater_is_better: str = field(
+        default="False", metadata={"help": "what is better"}
+    )
+  
+    save_total_limit: int = field(
+        default=2, metadata={"help": "max count of save model"}
+    )
 
     visual_learning_rate: Optional[float] = field(default=None)
     bge_learning_rate: Optional[float] = field(default=None)

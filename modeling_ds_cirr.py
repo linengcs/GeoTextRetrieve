@@ -310,14 +310,13 @@ class BGE_EVAToken(nn.Module):
         
     
 
-    def forward(self, mm_it_query=None, image_candidate=None):
+    def forward(self, mm_it_query=None, image_candidate=None,return_loss: bool=False, **kwargs):
         query_reps = self.mm_encoder(mm_it_query[0], mm_it_query[1])
         candi_reps = self.encode_image_only(image_candidate)
         
-        if self.training:
-            if self.negatives_cross_device:
-                query_reps = self._dist_gather_tensor(query_reps)
-                candi_reps = self._dist_gather_tensor(candi_reps)
+        if self.negatives_cross_device and dist.is_initialized():
+            query_reps = self._dist_gather_tensor(query_reps)
+            candi_reps = self._dist_gather_tensor(candi_reps)
             
         scores = self.compute_similarity(query_reps, candi_reps)
         scores = scores / self.temperature
@@ -330,7 +329,9 @@ class BGE_EVAToken(nn.Module):
 
         if self.training:
             self.tf_writer.add_scalar("loss", loss)
-            logging.info("loss: %s" %(str(loss)))
+            logging.info("Train_loss: %s" %(str(loss)))
+        else:
+            logging.info("eval_loss: %s" %(str(loss)))
 
         return EncoderOutput(
             loss=loss,

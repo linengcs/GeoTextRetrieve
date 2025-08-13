@@ -13,16 +13,16 @@ import torch
 import torch.distributed
 
 class Multimodal_Dataset(Dataset):
-    def __init__(self, args:DataArguments, image_processor=None, dataaset=None) -> None:
+    def __init__(self, args:DataArguments, image_processor=None, dataset=None) -> None:
         self.image_dir = args.train_data_image
         self.train_group_size = args.train_group_size
         
-        if dataaset is None:
+        if dataset is None:
             jsonl_dir = args.train_data 
             cirr_data_path = jsonl_dir
             self.cirr_dataset = datasets.load_dataset('json', data_files=cirr_data_path, split='train')    
         else:
-            self.cirr_dataset = dataaset
+            self.cirr_dataset = dataset
         
         self.hn_mining = False # True if use "cirr/query_train_hn_mining.jsonl"
 
@@ -115,4 +115,4 @@ class Multimodal_Collator:
         c_images = self.reshape_image_candidate(image_candidates)
         c_image_collated = torch.stack(c_images)
 
-        return {"mm_it_query": (q_image_collated, q_text_collated), "image_candidate": c_image_collated}
+        return {"mm_it_query": (q_image_collated, q_text_collated), "image_candidate": c_image_collated, "return_loss": True}

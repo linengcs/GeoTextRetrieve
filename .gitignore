@@ -1,6 +1,10 @@
 output/
 new_output/
 .ipynb_checkpoints/
+test/
+train+test/
+train/
+__pycache__/
 
 loss.csv
 test.py

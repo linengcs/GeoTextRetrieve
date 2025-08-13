@@ -74,7 +74,7 @@ def main():
 
     # Load and split datasets
     full_dataset = datasets.load_dataset('json', data_files=data_args.train_data, split='train')
-    split_datasets = full_dataset.train_test_split(test_size=0.1, seed=training_args.seed)
+    split_datasets = full_dataset.train_test_split(test_size=0.05, seed=training_args.seed)
     train_split = split_datasets['train']
     val_split = split_datasets['test']
     logger.info(f"Data split: {len(train_split)} for training, {len(val_split)} for validation.")
@@ -100,14 +100,6 @@ def main():
                                 temperature = training_args.temperature,
                                 writer=writer,
                                 eva_pretrained_path = model_args.visual_model_name_or_path,)
-
-    
-    
-    if training_args.resume_path is None:
-        logger.info('Training from scratch')
-    else:
-        logger.info('Traing from checkpoint: %s', training_args.resume_path)
-        model.load_state_dict(torch.load(training_args.resume_path, map_location='cpu'))
 
     if training_args.fix_position_embedding:
         for k, v in model.named_parameters():
@@ -168,7 +160,13 @@ def main():
     Path(training_args.output_dir).mkdir(parents=True, exist_ok=True)
 
     # Training
-    trainer.train()
+    if training_args.resume_path is None:
+        logger.info('Training from scratch')
+        trainer.train()
+    else:
+        logger.info('Traing from checkpoint: %s', training_args.resume_path)
+        trainer.train(resume_from_checkpoint=training_args.resume_path)
+        
     trainer.save_model()
     # For convenience, we also re-save the tokenizer to the same directory,
     # so that you can share your model easily on huggingface.co/models =)
