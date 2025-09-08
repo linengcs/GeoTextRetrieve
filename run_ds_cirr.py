@@ -19,7 +19,6 @@ from transformers import (
 import datasets
 import sys
 print(os.getcwd())
-sys.path.append('./FlagEmbedding/baai_general_embedding/downstream')
 from .arguments import ModelArguments, DataArguments, \
     RetrieverTrainingArguments as TrainingArguments
 from .data_ds_cirr import Multimodal_Dataset, Multimodal_Collator
@@ -73,10 +72,13 @@ def main():
     set_seed(training_args.seed)
 
     # Load and split datasets
-    full_dataset = datasets.load_dataset('json', data_files=data_args.train_data, split='train')
-    split_datasets = full_dataset.train_test_split(test_size=0.05, seed=training_args.seed)
-    train_split = split_datasets['train']
-    val_split = split_datasets['test']
+    train_split = datasets.load_dataset('json', data_files=data_args.train_data, split='train')
+    val_split = datasets.load_dataset('json', data_files=data_args.eval_data, split='train')
+    # Truncate the evaluation dataset if it's longer than 20000
+    if len(val_split) > 20000:
+        logger.info(f"Original validation set size: {len(val_split)}. Truncating to 20000 samples.")
+        val_split = val_split.select(range(20000))
+        
     logger.info(f"Data split: {len(train_split)} for training, {len(val_split)} for validation.")
 
     num_labels = 1
@@ -135,7 +137,26 @@ def main():
         for k, v in model.named_parameters():
             if "bge_encoder" in k or "bge_embeddings" in k or "bge_pooler" in k:
                 logging.info(f"Freeze the parameters for {k}")
-                v.requires_grad = False 
+                v.requires_grad = False
+    else:
+        if model_args.custom_train_text_tower is not None:
+            train_num = model_args.custom_train_text_tower
+            # BGE-M3 base has 24 layers
+            total_layers = model.bge_encoder.config.num_hidden_layers
+            freeze_num = total_layers - train_num
+            freeze_layers = []
+            for _i in range(freeze_num):
+                layer_name = "bge_encoder.layer." + str(_i) + "."
+                freeze_layers.append(layer_name)
+            
+            # Freeze embeddings and bottom layers
+            for k, v in model.named_parameters():
+                if "bge_embeddings" in k:
+                    logging.info(f"Freeze the parameters for {k}")
+                    v.requires_grad = False
+                if any(layer_name in k for layer_name in freeze_layers):
+                    logging.info(f"Freeze the parameters for {k}")
+                    v.requires_grad = False
 
 
     train_dataset = Multimodal_Dataset(args=data_args, 

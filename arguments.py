@@ -35,6 +35,11 @@ class ModelArguments:
             "help": "freeze specific layer of vision tower"
         },
     )
+    custom_train_text_tower: Optional[int] = field(
+        default=None, 
+        metadata={"help": "Train top n layers of text tower"}
+    )
+
     train_text_tower: bool = field(
         default=False, metadata={"help": "Freeze the text tower (always from BGE) when training, but not freeze the adaptor (if have)"}
     )
@@ -45,6 +50,9 @@ class ModelArguments:
 class DataArguments:
     train_data: str = field(
         default=None, metadata={"help": "Path to train data, always image-text pair data"}
+    )
+    eval_data: str = field(
+        default=None, metadata={"help": "Path to eval data, always image-text pair data"}
     )
     train_data_text: str = field(
         default=None, metadata={"help": "Path to train text data, refers to text-only data for text training"}
@@ -121,12 +129,12 @@ class RetrieverTrainingArguments(TrainingArguments):
         default="train_loss", metadata={"help": ""}
     )
     
-    greater_is_better: str = field(
-        default="False", metadata={"help": "what is better"}
+    greater_is_better: bool = field(
+        default=False, metadata={"help": "what is better"}
     )
-  
-    save_total_limit: int = field(
-        default=2, metadata={"help": "max count of save model"}
+
+    warmup_steps: int = field(
+        default=0, metadata={"help": "warmup steps"}
     )
 
     visual_learning_rate: Optional[float] = field(default=None)

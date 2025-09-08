@@ -10,7 +10,7 @@ from transformers.file_utils import ModelOutput
 import os
 
 import sys
-sys.path.append("./downstream_finetune_example/EVA-CLIP/EVA-CLIP/rei")
+sys.path.append("/mnt/shared-storage-user/tanxin/lilinfeng/new_track4/GeoTextRetrieve/EVA-CLIP/EVA-CLIP/rei")
 from eva_clip import create_model_and_transforms, get_tokenizer
 
 from torch.utils.tensorboard import SummaryWriter
@@ -78,7 +78,10 @@ class BGE_EVAToken(nn.Module):
             force_custom_clip=True,
             device=f"cuda:{device}")
         
-        self.visual_proj = nn.Linear(1024, 1024)
+        self.visual_proj = nn.Sequential(
+            nn.Linear(1024, 1024),
+            nn.LayerNorm(1024)
+        )
 
         self.cross_entropy = nn.CrossEntropyLoss(reduction='mean')
 
