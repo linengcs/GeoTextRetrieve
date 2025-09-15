@@ -4,6 +4,8 @@ new_output/
 test/
 test951/
 train+test/
+new_train/
+xd/
 train/
 __pycache__/
 

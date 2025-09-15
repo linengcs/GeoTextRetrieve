@@ -8,14 +8,14 @@ WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
 
 DATA_PATH=/mnt/shared-storage-user/tanxin/lilinfeng/new_track4/track4/data/new_split_merged_train.json # the directory of query_train.jsonl
 EVAL_DATA_PATH=/mnt/shared-storage-user/tanxin/lilinfeng/new_track4/track4/data/new_merged_test.json
-SAVE_PATH=/mnt/shared-storage-user/tanxin/lilinfeng/new_track4/GeoTextRetrieve/train # your saving path
+SAVE_PATH=/mnt/shared-storage-user/tanxin/lilinfeng/new_track4/GeoTextRetrieve/new_train # your saving path
 IMAGE_PATH=/mnt/shared-storage-user/tanxin/lilinfeng/robosense_track4/track4-cross-modal-drone-navigation/images # the training image directory
 EPOCH=50
 RESUME_PATH=/mnt/shared-storage-user/tanxin/lilinfeng/new_track4/GeoTextRetrieve/train/checkpoint-8000 # pre-trained visualized bge weights
-SAVE_STEPS=500
-GROUP_SIZE=5 # = one (positive sample) + number (of hard negative samples)
-BSZ_PERGPU=100
-LR=1e-5
+SAVE_STEPS=200
+# GROUP_SIZE=5 # = one (positive sample) + number (of hard negative samples)
+BSZ_PERGPU=550
+LR=2e-5
 
 Training_Dir=/mnt/shared-storage-user/tanxin/lilinfeng/new_track4 #your training dir
 DeepSpeedConfig=/mnt/shared-storage-user/tanxin/lilinfeng/new_track4/GeoTextRetrieve/ds_config_zero2.json #your deepspeed config file
@@ -34,14 +34,13 @@ full_options="
   --output_dir $SAVE_PATH \
   --bge_model_name_or_path  /mnt/shared-storage-user/tanxin/lilinfeng/robosense_track4/BAAI/bge-m3 \
   --visual_model_name_or_path  /mnt/shared-storage-user/tanxin/lilinfeng/robosense_track4/BAAI/EVA02_CLIP_L_psz14_s4B.pt \
-  --dataloader_num_workers 1  \
+  --dataloader_num_workers 0  \
   --train_data $DATA_PATH \
   --eval_data $EVAL_DATA_PATH \
   --train_data_image $IMAGE_PATH \
-  --train_group_size $GROUP_SIZE \
   --learning_rate $LR \
   --weight_decay 0.05 \
-  --warmup_steps 1000 \
+  --warmup_steps 100 \
   --bf16 \
   --per_device_train_batch_size $BSZ_PERGPU \
   --per_device_eval_batch_size $BSZ_PERGPU \

@@ -323,10 +323,10 @@ class BGE_EVAToken(nn.Module):
             
         scores = self.compute_similarity(query_reps, candi_reps)
         scores = scores / self.temperature
-        scores = scores.view(query_reps.size(0), -1)
+        # scores = scores.view(query_reps.size(0), -1)
         
         target = torch.arange(scores.size(0), device=scores.device, dtype=torch.long)
-        target = target * (candi_reps.size(0) // query_reps.size(0))
+        # target = target * (candi_reps.size(0) // query_reps.size(0))
         
         loss = self.compute_loss(scores, target)
 

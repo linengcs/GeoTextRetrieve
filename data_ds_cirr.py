@@ -15,7 +15,7 @@ import torch.distributed
 class Multimodal_Dataset(Dataset):
     def __init__(self, args:DataArguments, image_processor=None, dataset=None) -> None:
         self.image_dir = args.train_data_image
-        self.train_group_size = args.train_group_size
+        # self.train_group_size = args.train_group_size
         
         if dataset is None:
             jsonl_dir = args.train_data 
@@ -24,7 +24,7 @@ class Multimodal_Dataset(Dataset):
         else:
             self.cirr_dataset = dataset
         
-        self.hn_mining = False # True if use "cirr/query_train_hn_mining.jsonl"
+        # self.hn_mining = False # True if use "cirr/query_train_hn_mining.jsonl"
 
         self.total_len = len(self.cirr_dataset)
           
@@ -41,21 +41,23 @@ class Multimodal_Dataset(Dataset):
         q_img = None
         
         positive_img = self.cirr_dataset[item]["positive_value"]
-        positive_img = [self.image_processor(self.img2pil(positive_img))]
-        if not self.hn_mining:
-            hn_images = random.sample(self.cirr_dataset[item]["hn_image"], self.train_group_size - 1)
-        else:
-            per_select_num = (self.train_group_size - 1) // 2
-            hn_images_1 = random.sample(self.cirr_dataset[item]["hn_image"], per_select_num)
-            hn_images_2 = random.sample(self.cirr_dataset[item]["hn_mining_images"][:20], per_select_num)
+        # positive_img = [self.image_processor(self.img2pil(positive_img))]
+        positive_img = self.image_processor(self.img2pil(positive_img))
+        # if not self.hn_mining:
+        #     hn_images = random.sample(self.cirr_dataset[item]["hn_image"], self.train_group_size - 1)
+        # else:
+        #     per_select_num = (self.train_group_size - 1) // 2
+        #     hn_images_1 = random.sample(self.cirr_dataset[item]["hn_image"], per_select_num)
+        #     hn_images_2 = random.sample(self.cirr_dataset[item]["hn_mining_images"][:20], per_select_num)
             
-            hn_images = hn_images_1 + hn_images_2
-        hn_images = [self.image_processor(self.img2pil(_hn)) for _hn in hn_images]
+        #     hn_images = hn_images_1 + hn_images_2
+        # hn_images = [self.image_processor(self.img2pil(_hn)) for _hn in hn_images]
         
         
         
-        image_candidates = positive_img + hn_images    
-        return q_img, q_text, image_candidates
+        # image_candidates = positive_img + hn_images    
+        # return q_img, q_text, image_candidates
+        return q_img, q_text, positive_img
         
     
     def __len__(self):
@@ -94,7 +96,8 @@ class Multimodal_Collator:
         
         q_images = [f[0] for f in features]
         q_texts = [f[1] for f in features]
-        image_candidates = [f[2] for f in features]
+        # image_candidates = [f[2] for f in features]
+        positive_images = [f[2] for f in features]
         
         
         
@@ -112,7 +115,8 @@ class Multimodal_Collator:
         else:
             q_image_collated = torch.stack(q_images)
             
-        c_images = self.reshape_image_candidate(image_candidates)
-        c_image_collated = torch.stack(c_images)
+        # c_images = self.reshape_image_candidate(image_candidates)
+        # c_image_collated = torch.stack(c_images)
+        c_image_collated = torch.stack(positive_images)
 
         return {"mm_it_query": (q_image_collated, q_text_collated), "image_candidate": c_image_collated, "return_loss": True}
